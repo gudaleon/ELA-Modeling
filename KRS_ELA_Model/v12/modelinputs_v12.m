@@ -7,8 +7,8 @@
 
 function [In_Z,In_Az,tt,In_Tz,In_Cz,In_Sz,In_TPz,In_DOPz,In_Chlz,In_DOCz,In_TPz_sed,In_Chlz_sed,In_FIM,Ice0,Wt,Inflw,...
          Phys_par,Phys_par_range,Phys_par_names,Bio_par,Bio_par_range,Bio_par_names] ...
-            = modelinputs_v12(M_start,M_stop,init_filename,init_sheet,...
-            input_filename,input_sheet,param_filename,param_sheet,dt);
+            = modelinputs_v12(M_start,M_stop,Initfile,Initsheet,Inputfile,Inputsheet,Parafile,Parasheet,dt);
+        
 
 % Inputs:
 %       M_start : Model start date [year, month, day]
@@ -42,7 +42,7 @@ function [In_Z,In_Az,tt,In_Tz,In_Cz,In_Sz,In_TPz,In_DOPz,In_Chlz,In_DOCz,In_TPz_
 global ies80;
 
 % == Read model parameter file
-[ParaMx,StrMx]=xlsread(param_filename,param_sheet);
+[ParaMx,StrMx]=xlsread(Parafile,Parasheet);
 
 %Main physical parameters (dz, Kz_ak, etc...)	
 Phys_par_names=StrMx(3:25,1);
@@ -50,9 +50,9 @@ Phys_par=ParaMx(3:25,2);
 Phys_par_range=ParaMx(3:25,3:4);
 
 %Main biological parameters (Y_cp, m_twty, g_twty, etc...)	
-Bio_par_names=StrMx(26:40,1);
-Bio_par=ParaMx(26:40,2);
-Bio_par_range=ParaMx(26:40,3:4);
+Bio_par_names=StrMx(26:48,1);
+Bio_par=ParaMx(26:48,2);
+Bio_par_range=ParaMx(26:48,3:4);
 
   % Vertical settling velocities
   U = Bio_par(8:9); %for sedimenting velocities
@@ -62,7 +62,7 @@ Bio_par_range=ParaMx(26:40,3:4);
   
 % == Read morphometric and initial profile file
 
- [InitMx,StrMx]=xlsread(init_filename,init_sheet);
+ [InitMx,StrMx]=xlsread(Initfile,Initsheet);
  In_Z=InitMx(3:end,1);
  In_Az=InitMx(3:end,2);
  In_Tz=InitMx(3:end,3);
@@ -82,7 +82,7 @@ Bio_par_range=ParaMx(26:40,3:4);
 
 % == Read input forcing data file
 
-[InputMx,StrMx]=xlsread(input_filename,input_sheet);
+[InputMx,StrMx]=xlsread(Inputfile,Inputsheet);
 
 In_Date=InputMx(3:end,1:3);
 In_Met=InputMx(3:end,4:10);
