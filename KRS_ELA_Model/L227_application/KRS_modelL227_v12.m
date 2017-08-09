@@ -1,5 +1,5 @@
 % Script to run MyLake (v_12) for L227 
-% by KRS, last modified 2017.07.20
+% by KRS, last modified 2017.08.09
 
 clear all;
 path(path,'/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/air_sea') %path for air-sea toolbox
@@ -9,52 +9,43 @@ global ies80 Eevapor;
 test_time=0;
 Eevapor=0;
 
-disp('A')
-%2017-07-20: Commented out. These are observations for Vansjo. I think these are the items
-%that plot onto the graphs as the checks. I believe the model should run
-%without loading L227 observations in. This can be done later once I have
-%the model running error-free.
-
+%2017-08-09: I don't have data for ice thickness from Lake 227. I've left
+%the ice comonent commented out here and throughout the model. 
 % load /Users/krsalkgu/Documents/MATLAB/MyLake_public-master/v12/Vansjo_application/Observations/vansjoice.dat
 load /Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/Observations/L227temp.txt
-% 
-% [Obs_TP_Chla, trash]=xlsread('/Users/krsalkgu/Documents/MATLAB/MyLake_public-master/v12/Vansjo_application/Observations/Vansjo_TP_Chla84_05.xls');
-% % year, month, day, TP, Chla
+
+[Obs_TP_Chla, trash]=xlsread('/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/Observations/L227_TP_Chla.xls');
+% year, month, day, TP, Chla
+%2017-08-09: I've left suspended solids commented out here and for the
+%figures. I don't have data on total suspended solids from L227 but I have
+%total solid C data. I may be able to take the %C in biomass and calculate
+%total suspended mass.
 % load /Users/krsalkgu/Documents/MATLAB/MyLake_public-master/v12/Vansjo_application/Observations/Obs_SS.dat; 
 % % year, month, day, SS (mg/L)
-% load /Users/krsalkgu/Documents/MATLAB/MyLake_public-master/v12/Vansjo_application/Observations/Obs_PO4P.dat; 
-% % year, month, day, PO4P (microg/L)
+load /Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/Observations/L227TDP.txt 
+% year, month, day, PO4P (ug/L)
 
 lake='Lake 227';
 year=1969;
 m_start=[1969,6,27]; 
 m_stop=[2009,12,31];
 
-disp('B')
-initfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_init_basin1.xls';
-parafile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_para_all.xls';
-inputfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_input_basin1_land_doc_var_new_species_simplified.xls';
+Initfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_init_basin1.xls';
+Parafile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_para_all.xls';
+Inputfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_input_basin1_land_doc_var_new_species_simplified.xls';
 
-disp('C')
 tic
         [zz,Az,Vz,tt,Qst,Kzt,Tzt,Czt,Szt,Pzt,Chlzt,PPzt,DOPzt,DOCzt,Qzt_sed,lambdazt,...
         P3zt_sed,P3zt_sed_sc,His,DoF,DoM,MixStat,Wt]...
-           = solvemodel_v12(m_start,m_stop,initfile,'lake',inputfile,'timeseries', parafile,'lake');    
-disp('D')
+           = solvemodel_v12_1b(m_start,m_stop,Initfile,'lake',Inputfile,'timeseries', Parafile,'lake');    
 run_time=toc
 
-disp('E')
 DoF_realtime=DoF+tt(1)-1; %TSA, assumed that time is 1 day
 DoM_realtime=DoM+tt(1)-1; %TSA
 DoF_plottime=DoF+tt(1)-1-datenum(year,1,1); %TSA, assumed that time is 1 day
 DoM_plottime=DoM+tt(1)-1-datenum(year,1,1); %TSA
 
 tt_mod = tt - datenum(year,1,1); %time now scaled so that it begins from the 1 january of the "year" (=0)
-
-%2017-07-20: Commented out. These are observations for Vansjo. I think these are the items
-%that plot onto the graphs as the checks. I believe the model should run
-%without loading L227 observations in. This can be done later once I have
-%the model running error-free.
 
 % %=Ice thickness observations (tt_mod, Hice (m))
 % IceObs=[datenum(fliplr(vansjoice(:,1:3))) - datenum(year,1,1),vansjoice(:,4)./100];
@@ -78,7 +69,6 @@ inxt=find(tt_mod==TempObs(alku(i),1));
     TempMod(alku(i):loppu(i))=NaN;    
     end    
 end
-disp('F')
 zlim = [0 max(zz)];
 tlim = [min(tt_mod) max(tt_mod)];
 
@@ -134,7 +124,6 @@ axis([0 25 0 25]);
 axis square;
 title([lake ' ' datestr(datenum(m_start),28) '--' datestr(datenum(m_stop),28)]); 
 grid on;
-disp('G')
 figure(3)
 clf
 fign=6;
@@ -164,7 +153,7 @@ end;
    
      subplot(336)
    xlabel('Temperature (^{o}C)','fontsize',8)
-disp('H')
+   
 figure(4)
 clf
 for i = fign+1:min(12,length(posalku))
@@ -189,7 +178,6 @@ end;
    
      subplot(336)
    xlabel('Temperature (^{o}C)','fontsize',8)
-disp('I')
 
 figure(5)
 clf
@@ -406,16 +394,16 @@ for i=min(yrs):max(yrs)
    end
  end
  
-%  %synchronize observations to model simulations
-%          TP_Chla_Mod=NaN*ones(length(Obs_TP_Chla),2); 
-%         for i=1:length(Obs_TP_Chla)
-%             inx=find(datenum(Obs_TP_Chla(i,1:3))==monthly_qual(:,4));
-%             if(isempty(inx)==0)
-%                 TP_Chla_Mod(i,1)=monthly_qual(inx,5); %1) TP
-%                 TP_Chla_Mod(i,2)=monthly_qual(inx,6); %2) Chla
-%             end
-%         end
-%  
+ %synchronize observations to model simulations
+         TP_Chla_Mod=NaN*ones(length(Obs_TP_Chla),2); 
+        for i=1:length(Obs_TP_Chla)
+            inx=find(datenum(Obs_TP_Chla(i,1:3))==monthly_qual(:,4));
+            if(isempty(inx)==0)
+                TP_Chla_Mod(i,1)=monthly_qual(inx,5); %1) TP
+                TP_Chla_Mod(i,2)=monthly_qual(inx,6); %2) Chla
+            end
+        end
+ 
  yearly_qual=NaN*ones((max(yrs)-min(yrs)+1),6);
  kk=0;
 for i=min(yrs):max(yrs)
@@ -432,7 +420,7 @@ for i=min(yrs):max(yrs)
 subplot(311)
  plot(monthly_qual(:,4),monthly_qual(:,5),'.-')
  hold on
-%  plot(datenum(Obs_TP_Chla(:,1:3)),Obs_TP_Chla(:,4),'r.')
+ plot(datenum(Obs_TP_Chla(:,1:3)),Obs_TP_Chla(:,4),'r.')
  set(gca,'ylim',[0 70]);
  ylabel('TotP  (\mug/l)')
  title('Monthly mean (0-4m)')
@@ -442,7 +430,7 @@ subplot(311)
  subplot(312)
  plot(monthly_qual(:,4),monthly_qual(:,6),'.-')
  hold on
-%  plot(datenum(Obs_TP_Chla(:,1:3)),Obs_TP_Chla(:,5),'r.')
+ plot(datenum(Obs_TP_Chla(:,1:3)),Obs_TP_Chla(:,5),'r.')
  set(gca,'ylim',[0 20]);
  ylabel('Chl a  (\mug/l)')
  title('Monthly mean (0-4m)')
@@ -452,42 +440,42 @@ subplot(311)
  subplot(313)
  plot(monthly_qual(:,4),monthly_qual(:,9),'.-')
  hold on
-%  plot(datenum(Obs_PO4P(:,1:3)),Obs_PO4P(:,4),'r.') %mg/m3
+ plot(datenum(L227TDP(:,1:3)),L227TDP(:,4),'r.') %mg/m3
  set(gca,'ylim',[0 40]);
  ylabel('PO4 (\mug/l)')
  title('Monthly mean (0-4m)')
  datetick('x','mmmyy')
  grid on
  
-% figure(9)
-% clf
-% for i=1:length(Obs_TP_Chla)
-% inx=find(datenum(Obs_TP_Chla(i,1:3))==monthly_qual(:,4));
-%  if(isempty(inx)==0)
-%  subplot(221)  
-%  plot(Obs_TP_Chla(i,4),monthly_qual(inx,5),'b.')
-%  hold on
-%  subplot(222)  
-%  plot(Obs_TP_Chla(i,5),monthly_qual(inx,6),'b.')
-%  hold on
-%  end
-% end
-% subplot(221)
-% axis('square')
-% axis([0 60 0 60])
-% xlabel('Observed')
-% ylabel('Modelled')
-% plot([0 60],[0 60],'--')
-% title(['TotP ({\mu}g/l)']);
-% 
-% subplot(222)
-% axis('square')
-% axis([0 20 0 20])
-% xlabel('Observed')
-% ylabel('Modelled')
-% plot([0 30],[0 30],'--')
-% title(['Chla {\ita} ({\mu}g/l)']); 
-% 
+figure(9)
+clf
+for i=1:length(Obs_TP_Chla)
+inx=find(datenum(Obs_TP_Chla(i,1:3))==monthly_qual(:,4));
+ if(isempty(inx)==0)
+ subplot(221)  
+ plot(Obs_TP_Chla(i,4),monthly_qual(inx,5),'b.')
+ hold on
+ subplot(222)  
+ plot(Obs_TP_Chla(i,5),monthly_qual(inx,6),'b.')
+ hold on
+ end
+end
+subplot(221)
+axis('square')
+axis([0 60 0 60])
+xlabel('Observed')
+ylabel('Modelled')
+plot([0 60],[0 60],'--')
+title(['TotP ({\mu}g/l)']);
+
+subplot(222)
+axis('square')
+axis([0 20 0 20])
+xlabel('Observed')
+ylabel('Modelled')
+plot([0 30],[0 30],'--')
+title(['Chla {\ita} ({\mu}g/l)']); 
+
 % subplot(223)
 % for i=1:length(Obs_SS)
 % inx=find(datenum(Obs_SS(i,1:3))==monthly_qual(:,4));
@@ -502,21 +490,21 @@ subplot(311)
 % ylabel('Modelled')
 % loglog([1e-5 1],[1e-5 1],'--')
 % title(['Susp. matter {\ita} (g/l)']); 
-% 
-% subplot(224)
-% for i=1:length(Obs_PO4P)
-% inx=find(datenum(Obs_PO4P(i,1:3))==monthly_qual(:,4));
-%  if(isempty(inx)==0)
-%  plot(Obs_PO4P(i,4),monthly_qual(inx,9),'b.') %mg/m3
-%  hold on
-%  end
-% end
-% axis('square')
-% axis([0 20 0 20])
-% xlabel('Observed')
-% ylabel('Modelled')
-% plot([0 30],[0 30],'--')
-% title(['PO4 (\mug/l)']); 
+
+subplot(224)
+for i=1:length(L227TDP)
+inx=find(datenum(L227TDP(i,1:3))==monthly_qual(:,4));
+ if(isempty(inx)==0)
+ plot(L227TDP(i,4),monthly_qual(inx,9),'b.') %mg/m3
+ hold on
+ end
+end
+axis('square')
+axis([0 20 0 20])
+xlabel('Observed')
+ylabel('Modelled')
+plot([0 30],[0 30],'--')
+title(['PO4 (\mug/l)']); 
 
 figure(10)
 clf
@@ -765,7 +753,7 @@ subplot(211)
  subplot(311)
  plot(monthly_qual(:,4),monthly_qual(:,5),'.-')
  hold on
-%  plot(datenum(Obs_TP_Chla(:,1:3)),Obs_TP_Chla(:,4),'r+')
+ plot(datenum(Obs_TP_Chla(:,1:3)),Obs_TP_Chla(:,4),'r+')
  set(gca,'ylim',[0 70]);
  ylabel('mg/m^3','fontsize',9)
  title('TotP (monthly mean, 0-4m)','fontweight','bold')
@@ -778,7 +766,7 @@ subplot(211)
  subplot(312)
  plot(monthly_qual(:,4),monthly_qual(:,6),'.-')
  hold on
- %plot(datenum(Obs_TP_Chla(:,1:3)),Obs_TP_Chla(:,5),'r+')
+ plot(datenum(Obs_TP_Chla(:,1:3)),Obs_TP_Chla(:,5),'r+')
  set(gca,'ylim',[0 20]);
  ylabel('mg/m^3','fontsize',9)
  title('P_{Chla} (monthly mean, 0-4m)','fontweight','bold')
@@ -809,7 +797,7 @@ subplot(211)
  subplot(311)
  plot(monthly_qual(:,4),monthly_qual(:,9),'.-')
  hold on
-%  plot(datenum(Obs_PO4P(:,1:3)),Obs_PO4P(:,4),'r+') %mg/m3
+ plot(datenum(L227TDP(:,1:3)),L227TDP(:,4),'r+') %mg/m3
  set(gca,'ylim',[0 40]);
  ylabel('mg/m^3','fontsize',9)
  title('P_D (monthly mean, 0-4m)','fontweight','bold')
@@ -852,14 +840,14 @@ set(gca,'xlim',tlims)
 %set up for metalimnion, 4-5 m depth (changed 7-21-17)
 subplot(312)
 %set depth for observed temperatures to 4-5 m
-inx=find((round(TempObs(:,2))==4)|(round(TempObs(:,2))==5));
+inx=find((round(TempObs(:,2))==4));
 plot(TempObs(inx,1)+datenum(year,1,1),TempObs(inx,3),'r+','linewidth',2);
 hold on
-%set depth for modeled temperatures to 5 m
-plot(tt_mod+datenum(year,1,1),Tzt(5,:),'-');
+%set depth for modeled temperatures to 4 m
+plot(tt_mod+datenum(year,1,1),Tzt(4,:),'-');
  set(gca,'ylim',[0 25]);
  ylabel('^oC','fontsize',9)
- title('Temperature  4-5 m','fontweight','bold')
+ title('Temperature  4 m','fontweight','bold')
  datetick('x','yy')
  grid on
  set(gca,'fontsize',9)
@@ -882,7 +870,6 @@ plot(tt_mod+datenum(year,1,1),Tzt(9,:),'-');
  grid on
  set(gca,'fontsize',9)
  set(gca,'xlim',tlims)
- disp('J')
  %===============
  
  disp(['Sum of P sinks: '  num2str(round(sum(MixStat(14,:)+MixStat(15,:)))) ' kg']); 
