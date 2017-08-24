@@ -7,8 +7,7 @@
 
 function [In_Z,In_Az,tt,In_Tz,In_Cz,In_POCz,In_TPz,In_DOPz,In_Chlz,In_DOCz,In_DICz,In_TPz_sed,In_Chlz_sed,In_O2z,In_NO3z,In_NH4z,In_SO4z,In_HSz,In_H2Sz,In_Fe2z,In_Ca2z,In_pHz,In_CH4z,In_Fe3z,In_Al3z,In_SiO4z,In_SiO2z,In_diatomz,In_POPz,In_FIM,Ice0,Wt,Inflw,...
          Phys_par,Phys_par_range,Phys_par_names,Bio_par,Bio_par_range,Bio_par_names] ...
-            = modelinputs_v2(M_start,M_stop,init_filename,init_sheet,...
-            input_filename,input_sheet,param_filename,param_sheet,dt);
+            = modelinputs_v2(M_start,M_stop,Initfile,Initsheet,Inputfile,Inputsheet,Parafile,Parasheet,dt);
 
 % Inputs:
 %       M_start : Model start date [year, month, day]
@@ -43,41 +42,41 @@ function [In_Z,In_Az,tt,In_Tz,In_Cz,In_POCz,In_TPz,In_DOPz,In_Chlz,In_DOCz,In_DI
 global ies80;
 
 % == Read model parameter file
-% ParaMx = xlsread(param_filename);
+[ParaMx,StrMx]=xlsread(Parafile,Parasheet);
 % % Koji 06.10.10
 % ParaMx = dlmread(param_filename, '\t', 'B3..D48');  % 46 by 3 This is
 %                                                   % version specific
 
-f = fopen(param_filename);
-garbage = fgetl(f);
-garbage = fgetl(f); % file get line
-data = textscan(f, '%s%f%f%f%s', 72, 'Delimiter', '\t');
-fclose(f);
-% read 46 lines
-par_names = data{1};
-par = data{2};
-par_range = [data{3} data{4}]; % horizontally concatenate
-Phys_par_names = par_names(1:38,:);
-Bio_par_names = par_names(39:72,:);
-Phys_par = par(1:38,:);
-Bio_par = par(39:72,:);
-Phys_par_range = par_range(1:38,:);
-Bio_par_range = par_range(39:72,:);
+% f = fopen(param_filename);
+% garbage = fgetl(f);
+% garbage = fgetl(f); % file get line
+% data = textscan(f, '%s%f%f%f%s', 72, 'Delimiter', '\t');
+% fclose(f);
+% % read 46 lines
+% par_names = data{1};
+% par = data{2};
+% par_range = [data{3} data{4}]; % horizontally concatenate
+% Phys_par_names = par_names(1:38,:);
+% Bio_par_names = par_names(39:72,:);
+% Phys_par = par(1:38,:);
+% Bio_par = par(39:72,:);
+% Phys_par_range = par_range(1:38,:);
+% Bio_par_range = par_range(39:72,:);
 % Bio_par(34) = 0.25;
 % Bio_par(35) = 1.95;
 % Bio_par(36) = 2.65;
-% %Main physical parameters (dz, Kz_ak, etc...)
-% % Phys_par_names=ParaMx(3:25,1);
-% % Phys_par=ParaMx(3:25,2);
-% % Phys_par_range=ParaMx(3:25,3:4);
+%Main physical parameters (dz, Kz_ak, etc...)
+Phys_par_names=StrMx(3:25,1);
+Phys_par=ParaMx(3:25,2);
+Phys_par_range=ParaMx(3:25,3:4);
 % Phys_par_names=NaN;
 % Phys_par=ParaMx(1:23,1);
 % Phys_par_range=ParaMx(1:23,2:3);
 
-% %Main biological parameters (Y_cp, m_twty, g_twty, etc...)
-% % Bio_par_names=ParaMx(26:48,1);
-% % Bio_par=ParaMx(26:48,2);
-% % Bio_par_range=ParaMx(26:48,3:4);
+%Main biological parameters (Y_cp, m_twty, g_twty, etc...)
+Bio_par_names=ParaMx(26:48,1);
+Bio_par=ParaMx(26:48,2);
+Bio_par_range=ParaMx(26:48,3:4);
 % Bio_par_names=NaN;
 % Bio_par=ParaMx(24:46,1);
 % Bio_par_range=ParaMx(24:46,2:3);
@@ -90,41 +89,42 @@ Bio_par_range = par_range(39:72,:);
 
 % == Read morphometric and initial profile file
 
- % InitMx = xlsread(init_filename);
+[InitMx,StrMx]=xlsread(Initfile,Initsheet);
  % % Koji 06.10.10
 InitMx = dlmread(init_filename, '\t', 2, 0);
- %% changed below 3:end to 1:end
- In_Z=InitMx(1:end,1);
- In_Az=InitMx(1:end,2);
- In_Tz=InitMx(1:end,3);
- In_Cz=InitMx(1:end,4);
- In_POCz=InitMx(1:end,5);
- In_TPz=InitMx(1:end,6);
- In_DOPz=InitMx(1:end,7);
- In_Chlz=InitMx(1:end,8);
- In_DOCz=InitMx(1:end,9);
- In_TPz_sed=InitMx(1:end,10);
- In_Chlz_sed=InitMx(1:end,11);
- In_FIM=InitMx(1:end,12);
- Ice0=InitMx(1,13:14);
- In_O2z=InitMx(1:end,15);
+ 
+  In_Z=InitMx(3:end,1);
+ In_Az=InitMx(3:end,2);
+ In_Tz=InitMx(3:end,3);
+ In_Cz=InitMx(3:end,4);
+ In_Sz=InitMx(3:end,5);
+ In_TPz=InitMx(3:end,6);
+ In_DOPz=InitMx(3:end,7);
+ In_Chlz=InitMx(3:end,8);
+ In_DOCz=InitMx(3:end,9);
+ In_TPz_sed=InitMx(3:end,10);
+ In_Chlz_sed=InitMx(3:end,11);
+ In_FIM=InitMx(3:end,12);
+ Ice0=InitMx(3,13:14);
+ 
+ In_O2z=InitMx(3:end,15);
 
- In_DICz=InitMx(1:end,16);
- In_NO3z=InitMx(1:end,17);
- In_NH4z=InitMx(1:end,18);
- In_SO4z=InitMx(1:end,19);
- In_HSz=InitMx(1:end,20);
- In_H2Sz=InitMx(1:end,21);
- In_Fe2z=InitMx(1:end,22);
- In_Ca2z=InitMx(1:end,23);
- In_pHz=InitMx(1:end,24);
- In_CH4z=InitMx(1:end,25);
- In_Fe3z=InitMx(1:end,26);
- In_Al3z=InitMx(1:end,27);
- In_SiO4z=InitMx(1:end,28);
- In_SiO2z=InitMx(1:end,29);
- In_diatomz=InitMx(1:end,30);
- In_POPz=InitMx(1:end,31);
+ In_DICz=InitMx(3:end,16);
+ In_NO3z=InitMx(3:end,17);
+ In_NH4z=InitMx(3:end,18);
+ In_SO4z=InitMx(3:end,19);
+ In_HSz=InitMx(3:end,20);
+ In_H2Sz=InitMx(3:end,21);
+ In_Fe2z=InitMx(3:end,22);
+ In_Ca2z=InitMx(3:end,23);
+ In_pHz=InitMx(3:end,24);
+ In_CH4z=InitMx(3:end,25);
+ In_Fe3z=InitMx(3:end,26);
+ In_Al3z=InitMx(3:end,27);
+ In_SiO4z=InitMx(3:end,28);
+ In_SiO2z=InitMx(3:end,29);
+ In_diatomz=InitMx(3:end,30);
+ In_POPz=InitMx(3:end,31);
 
 
  tt = [datenum(M_start):dt:datenum(M_stop)]';		% Solution time domain
@@ -141,16 +141,16 @@ InitMx = dlmread(init_filename, '\t', 2, 0);
 % $$$   [InputMx,StrMx]=xlsread(input_filename,input_sheet);
 % $$$ end
 
-% InputMx = xlsread(input_filename);
+[InputMx,StrMx]=xlsread(Inputfile,Inputsheet);
 % % Koji 06.10.10
-InputMx = dlmread(input_filename, '\t', 2, 0);
+%InputMx = dlmread(input_filename, '\t', 2, 0);
 % size(input_filename)
 
 
  %% changed below 3:end to 1:end 2011-09-29
-In_Date=InputMx(1:end,1:3);
-In_Met=InputMx(1:end,4:10);
-In_Inflow=InputMx(1:end,11:33);
+In_Date=InputMx(3:end,1:3);
+In_Met=InputMx(3:end,4:10);
+In_Inflow=InputMx(3:end,11:33);
 
 tmet=datenum(In_Date);
 
