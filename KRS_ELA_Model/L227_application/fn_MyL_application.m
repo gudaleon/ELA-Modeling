@@ -55,12 +55,12 @@ end
 
 %# ############ This is Lake 227 ##############
 
-parafile=lake_par_file;
-Initfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_init_basin1.xls';
+parafile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_para_all.xls';
+initfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_init_basin1.xls';
 
 
 if use_INCA == 0
-    Inputfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_input_basin1_land_doc_var_new_species_simplified.xls';
+    inputfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_input_basin1_land_doc_var_new_species.xls';
     disp('Using existing input')
 elseif use_INCA == 1
     inputfile = store_INCAP_input; % setting use_INCA to 2 will look for store_INCAP_input
@@ -83,7 +83,7 @@ MyLake_results.basin1 = MyLake_results_basin1;
 Sediment_results.basin1 = sediment_results_basin1;
 
 if is_save_results
-    disp('Saving sediment and water-column profiles for basin 1: Storefjorden');
+    disp('Saving sediment and water-column profiles for basin 1: L227');
     sediment_save_result_for_init_conc(Sediment_results.basin1, 1)
     MyLake_save_result_for_init_conc(MyLake_results.basin1, 1)
 else
