@@ -91,7 +91,7 @@ Bio_par_range=ParaMx(26:48,3:4);
 
 [InitMx,StrMx]=xlsread(Initfile,Initsheet);
  % % Koji 06.10.10
-InitMx = dlmread(init_filename, '\t', 2, 0);
+% InitMx = dlmread(init_filename, '\t', 2, 0);
  
   In_Z=InitMx(3:end,1);
  In_Az=InitMx(3:end,2);
@@ -150,7 +150,7 @@ InitMx = dlmread(init_filename, '\t', 2, 0);
  %% changed below 3:end to 1:end 2011-09-29
 In_Date=InputMx(3:end,1:3);
 In_Met=InputMx(3:end,4:10);
-In_Inflow=InputMx(3:end,11:33);
+In_Inflow=InputMx(3:end,11:31);
 
 tmet=datenum(In_Date);
 
