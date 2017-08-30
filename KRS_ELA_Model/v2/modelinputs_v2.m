@@ -66,17 +66,17 @@ global ies80;
 % Bio_par(35) = 1.95;
 % Bio_par(36) = 2.65;
 %Main physical parameters (dz, Kz_ak, etc...)
-Phys_par_names=StrMx(3:25,1);
-Phys_par=ParaMx(3:25,2);
-Phys_par_range=ParaMx(3:25,3:4);
+Phys_par_names=StrMx(3:40,1);
+Phys_par=ParaMx(3:40,2);
+Phys_par_range=ParaMx(3:40,3:4);
 % Phys_par_names=NaN;
 % Phys_par=ParaMx(1:23,1);
 % Phys_par_range=ParaMx(1:23,2:3);
 
 %Main biological parameters (Y_cp, m_twty, g_twty, etc...)
-Bio_par_names=ParaMx(26:48,1);
-Bio_par=ParaMx(26:48,2);
-Bio_par_range=ParaMx(26:48,3:4);
+Bio_par_names=ParaMx(41:74,1);
+Bio_par=ParaMx(41:74,2);
+Bio_par_range=ParaMx(41:74,3:4);
 % Bio_par_names=NaN;
 % Bio_par=ParaMx(24:46,1);
 % Bio_par_range=ParaMx(24:46,2:3);
@@ -97,7 +97,7 @@ Bio_par_range=ParaMx(26:48,3:4);
  In_Az=InitMx(3:end,2);
  In_Tz=InitMx(3:end,3);
  In_Cz=InitMx(3:end,4);
- In_Sz=InitMx(3:end,5);
+ In_POCz=InitMx(3:end,5);
  In_TPz=InitMx(3:end,6);
  In_DOPz=InitMx(3:end,7);
  In_Chlz=InitMx(3:end,8);
@@ -150,7 +150,8 @@ Bio_par_range=ParaMx(26:48,3:4);
  %% changed below 3:end to 1:end 2011-09-29
 In_Date=InputMx(3:end,1:3);
 In_Met=InputMx(3:end,4:10);
-In_Inflow=InputMx(3:end,11:31);
+In_Inflow=InputMx(3:end,11:33);
+
 
 tmet=datenum(In_Date);
 
