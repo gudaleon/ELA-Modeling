@@ -55,18 +55,18 @@ end
 
 %# ############ This is Lake 227 ##############
 
-parafile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_para_all.xls';
-initfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_init_basin1.xls';
+Parafile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_para_all.xls';
+Initfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_init_basin1.xls';
 
 
 if use_INCA == 0
-    inputfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_input_basin1_land_doc_var_new_species.xls';
+    Inputfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_input_basin1_land_doc_var_new_species.xlsx';
     disp('Using existing input')
 elseif use_INCA == 1
-    inputfile = store_INCAP_input; % setting use_INCA to 2 will look for store_INCAP_input
+    Inputfile = store_INCAP_input; % setting use_INCA to 2 will look for store_INCAP_input
     disp('Using INCA output')
 elseif ischar(use_INCA);
-    inputfile=use_INCA;
+    Inputfile=use_INCA;
     disp('Using response surfaces array')
 end
 
@@ -77,7 +77,7 @@ Deposition = 0;
 disp('Lake 227 ...')
 
 [MyLake_results_basin1, sediment_results_basin1] ...
-    = solvemodel_v2(m_start,m_stop,initfile,'lake',inputfile,'timeseries', parafile,'lake');
+    = solvemodel_v2(m_start,m_stop,Initfile,'lake',Inputfile,'timeseries', Parafile,'lake');
 
 MyLake_results.basin1 = MyLake_results_basin1;
 Sediment_results.basin1 = sediment_results_basin1;
@@ -140,11 +140,11 @@ end
 %     vanem_input = tempname;
 %     merge_l_b_inputs(land_to_vanem, store_to_vanem, vanem_input, m_start, m_stop)
 % 
-%     %parafile='k_values_lake.txt';
-%     parafile = lake_par_file;
-%     % initfile='IO/vanem_init.txt';
-%     initfile='IO/mylake_initial_concentrations_2.txt';
-%     inputfile = vanem_input;
+%     %Parafile='k_values_lake.txt';
+%     Parafile = lake_par_file;
+%     % Initfile='IO/vanem_init.txt';
+%     Initfile='IO/mylake_initial_concentrations_2.txt';
+%     Inputfile = vanem_input;
 % 
 %     % note: I removed the DIC/O2 bits here ... take them again from Langtjern
 %     % app when migrating to Mylake DOCOMO
@@ -155,9 +155,9 @@ end
 % 
 %     % [In_Z,In_Az,tt,In_Tz,In_Cz,In_Sz,In_TPz,In_DOPz,In_Chlz,In_DICz,In_DOCz,In_TPz_sed,In_Chlz_sed,In_O2z,In_NO3z,In_NH4z,In_SO4z,In_HSz,In_H2Sz,In_Fe2z,In_Ca2z,In_pHz,In_CH4z,In_Fe3z,In_Al3z,In_SiO4z,In_SiO2z,In_diatomz,In_FIM,Ice0,Wt,Inflw,...
 %     % Phys_par,Phys_par_range,Phys_par_names,Bio_par,Bio_par_range,Bio_par_names] ...
-%         % = modelinputs_v2(m_start,m_stop, initfile, 'lake', inputfile, 'timeseries', parafile, 'lake', dt);
+%         % = modelinputs_v2(m_start,m_stop, Initfile, 'lake', Inputfile, 'timeseries', Parafile, 'lake', dt);
 % 
-%     [MyLake_results_basin2, sediment_results_basin2] = solvemodel_v2(m_start,m_stop,initfile,'lake',inputfile,'timeseries', parafile,'lake');
+%     [MyLake_results_basin2, sediment_results_basin2] = solvemodel_v2(m_start,m_stop,Initfile,'lake',Inputfile,'timeseries', Parafile,'lake');
 % 
 %     delete (vanem_input)
 %     disp('Cleanup ... done.')
