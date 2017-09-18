@@ -1,0 +1,245 @@
+---
+output: 
+  pdf_document:
+    keep_tex: yes
+    fig_caption: yes
+    number_sections: yes
+    citation_package: natbib
+    template: C:/Users/meglarse/Dropbox (Personal)/Consulting/Salk_Kateri/modIteration-report/doc-setup/svm-latex-ms-mod.tex
+title: Fe-ELA Model Iteration Comparison Report [Iteration Number]
+author: 
+- name: Dr. Kateri Salk
+  affiliation: University of Waterloo
+geometry: margin=0.5in
+fontsize: 11pt
+fontfamily: mathpazo
+biblio-style: apsr
+---
+
+<Information in these brackets is used for annotating the RMarkdown file. They will not appear in the final PDF version of the document>
+
+<Setup the global options for the R chunks in your document>
+```{r setup, include=FALSE}
+
+setwd("/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/Model Output Evaluations")
+
+# Install packages for the document
+
+## install.packages("ggplot2")
+library(ggplot2)
+
+# Package options
+library(knitr)
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+
+## ggplot theme and figure parameters
+theme_std <- function (base_size = 16, base_family = "") {
+    theme_grey(base_size = base_size, base_family = base_family) %+replace% 
+        theme(axis.ticks = element_line(colour = "black", size = 1), 
+              legend.key = element_rect(colour = "white"), 
+              panel.background = element_rect(fill = "white", colour = NA), 
+              panel.border = element_rect(fill = NA, colour = NA),
+              axis.line = element_line(size = 0.5, colour = "black"),
+              panel.grid.major = element_line(NA), 
+              panel.grid.minor = element_line(NA), 
+              strip.background = element_rect(fill = "grey80", colour = "grey50", size = 0.2),
+              axis.text  = element_text(size=rel(0.9)),
+              axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm"),size=rel(1)),
+              axis.title.y = element_text(margin = unit(c(0, 3, 0, 0), "mm"),size=rel(1), angle = 90),
+              strip.text = element_text(size = rel(1.15), colour = "black", face = "bold"),
+              plot.margin=unit(c(10,10,10,10),"pt")
+        )
+}
+
+theme_set(theme_std())
+
+#test.plot <- ggplot(mtcars, aes(x = hp , y = mpg, col = mpg)) +
+#  geom_point()
+#print(test.plot)
+```
+
+# Summary of Major Findings
+
+1. **Model overlay** was ok...(\autoref{ModelOverlay}) <we can use the function autoref to automatically pull labeled graphics>
+    + Sublists can be made like this
+
+2. **Model regression** was ok...(\autoref{ModelRegression}) <we can use the function autoref to automatically pull labeled graphics>
+    + Sublists can be made like this
+
+<Add the text for each of your sections. Check out the [RMarkdown cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf) and [Markdown cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#lists) for more information about text formatting.>
+
+\newpage
+
+# Model Overlay
+
+<Perform the required functions to match the model output and observational data>
+```{r data-reduction, echo = FALSE}
+# Read in the data and add colnames
+obs <- read.csv("Observed_IntegratedEpi.csv", header = T)
+attach(obs)
+colnames(obs) <- c("org.date","Year","Month","Day", "obs.TP","obs.chla","obs.TDP")
+
+mod <- read.csv("Output_IntegratedEpi.csv", header = F)
+colnames(mod) <- c("Year","Month","Day","ML.date","mod.chla","mod.TDP","mod.TP")
+
+#Let's tidy! - part 1
+library(tidyr)
+library(magrittr)
+obs <- obs %>% 
+  unite(date, Year, Month, Day, sep = '-') #%>%
+  #filter(!is.na(obs.TP))
+obs <- data.frame(obs, Month, Year)
+obs <- na.omit(obs)
+obs <- obs[,-1]
+
+
+
+mod <- mod %>% unite(date, Year, Month, Day, sep = '-')
+mod <- mod[,-2]
+
+# Convert time object
+obs$date <- as.Date(obs$date, format = "%Y-%m-%d") #Converts data to date structure
+mod$date <- as.Date(mod$date, format = "%Y-%m-%d") #Converts data to date structure
+
+# tidy! - part 2: match model time and observational time
+library(dplyr)
+mod.match <- inner_join(obs,mod, by = "date") 
+
+#write data for later use
+#write.csv(filename = paste0("./example-data/processed/", format(Sys.time(), "%Y%m%d-%H%M"), "_modelcomp-output.csv"))
+```
+
+<Figure 1>
+```{r model-overlay, fig.cap="Overlay of observed (red) and modeled data (black). \\label{ModelOverlay}", echo = FALSE, fig.height = 7}
+
+p <- ggplot(mod.match, aes(x = date)) +
+  geom_point(aes(y = obs.TP, col = "Observed"), pch = 19, size = 1) +
+  geom_line(aes(y = mod.TP, col = "Modeled"), size = 0.5) +
+  ylim(0,150) +
+  ylab(expression(Total ~ Phosphorus ~ (mu*g / L))) +
+  xlab(" ") +
+  scale_colour_manual("", 
+                      breaks = c("Observed", "Modeled"),
+                      values = c("black", "red")) +
+  theme(legend.position = c(0.9,0.9))
+#print(p)
+
+
+p2 <- ggplot(mod.match, aes(x = date)) +
+  geom_point(aes(y = obs.TDP, col = "Observed"), pch = 19, size = 1) +
+  geom_line(aes(y = mod.TDP, col = "Modeled"), size = 0.5) +
+  ylim(0,50) +
+  ylab(expression(TDP ~ (mu*g / L))) +
+  xlab(" ") +
+  scale_colour_manual("", 
+                      breaks = c("Observed", "Modeled"),
+                      values = c("black", "red")) +
+  theme(legend.position = c(0.9,0.9))
+#print(p2)
+
+p3 <- ggplot(mod.match, aes(x = date)) +
+  geom_point(aes(y = obs.chla, col = "Observed"), pch = 19, size = 1) +
+  geom_line(aes(y = mod.chla, col = "Modeled"), size = 0.5) +
+  ylim(0,100) +
+  ylab(expression(Chlorophyll ~ a ~ (mu*g / L))) +
+  xlab(" ") +
+  scale_colour_manual("", 
+                      breaks = c("Observed", "Modeled"),
+                      values = c("black", "red")) +
+  theme(legend.position = c(0.9,0.9))
+#print(p3)
+
+require(gridExtra)
+grid.arrange(p, p2, p3, ncol = 1)
+
+```
+
+\newpage
+
+# Model regression
+
+```{r model-reg, fig.cap="Data regression for observed against modeled data. \\label{ModelRegression}", echo = FALSE, fig.height = 5}
+
+mod.lm <- lm(mod.match$mod.TP ~ mod.match$obs.TP)
+p <- ggplot(mod.match, aes(x = obs.TP, y = mod.TP, color=Month)) +
+  geom_point(pch = 19, size = 1.5) +
+  geom_abline(slope=1, intercept=0) + #(intercept = mod.lm[[1]][[1]], slope = mod.lm[[1]][[2]]) +
+  scale_x_continuous(limits=c(0,100)) + scale_y_continuous(limits=c(0,100)) +
+  xlab(expression(Total ~ Phosphorus ~ Observed ~ (mu*g / L))) +
+  ylab(expression(Total ~ Phosphorus ~ Modeled ~ (mu*g / L))) +
+  #geom_text(x = 600, y = 50, label = paste("y = ", round(mod.lm[[1]][[2]], digits = 2),"x + ", 
+  #                                                  round(mod.lm[[1]][[1]], digits = 2))) +
+  #geom_text(x = 600, y = 45, label = paste("R2","=",round(summary(mod.lm)[8][[1]], digits = 4)))
+  scale_color_distiller(palette="YlGnBu") +
+  theme(legend.position=c(0.9, 0.8))
+  
+#print(p)
+
+
+mod.lm <- lm(mod.match$mod.TDP ~ mod.match$obs.TDP)
+p2 <- ggplot(mod.match, aes(x = obs.TDP, y = mod.TDP, color=Month)) +
+  geom_point(pch = 19, size = 1.5) +
+  geom_abline(slope=1, intercept=0) + #(intercept = mod.lm[[1]][[1]], slope = mod.lm[[1]][[2]]) +
+   scale_x_continuous(limits=c(0,50)) + scale_y_continuous(limits=c(0,50)) +
+  xlab(expression(TDP ~ Observed ~ (mu*g / L))) +
+  ylab(expression(TDP ~ Modeled ~ (mu*g / L))) +
+  #geom_text(x = 425, y = 50, label = paste("y = ", round(mod.lm[[1]][[2]], digits = 2),"x + ", 
+  #                                                  round(mod.lm[[1]][[1]], digits = 2))) +
+  #geom_text(x = 450, y = 45, label = paste("R2","=",round(summary(mod.lm)[8][[1]], digits = 4)))
+  scale_color_distiller(palette="YlGnBu") +
+  theme(legend.position=c(0.9, 0.8))
+#print(p2)
+
+mod.lm <- lm(mod.match$mod.chla ~ mod.match$obs.chla)
+p3 <- ggplot(mod.match, aes(x = obs.chla, y = mod.chla, color=Month)) +
+  geom_point(pch = 19, size = 1.5) +
+  geom_abline(slope=1, intercept=0) + #(intercept = mod.lm[[1]][[1]], slope = mod.lm[[1]][[2]]) +
+  scale_x_continuous(limits=c(0,100)) + scale_y_continuous(limits=c(0,100)) +
+  xlab(expression(Chlorophyll ~ a ~ Observed ~ (mu*g / L))) +
+  ylab(expression(Chlorophyll ~ a ~ Modeled ~ (mu*g / L))) +
+  #geom_text(x = 175, y = 50, label = paste("y = ", round(mod.lm[[1]][[2]], digits = 2),"x + ", 
+  #                                                  round(mod.lm[[1]][[1]], digits = 2))) +
+  #geom_text(x = 175, y = 45, label = paste("R2","=",round(summary(mod.lm)[8][[1]], digits = 4)))
+  scale_color_distiller(palette="YlGnBu") +
+  theme(legend.position=c(0.9, 0.8))
+#print(p3)
+
+mod.lm <- lm(mod.match$mod.chla ~ mod.match$obs.chla)
+p4 <- ggplot(mod.match, aes(x = obs.chla, y = mod.chla, color=Year)) +
+  geom_point(pch = 19, size = 1.5) +
+  geom_abline(slope=1, intercept=0) + #(intercept = mod.lm[[1]][[1]], slope = mod.lm[[1]][[2]]) +
+  scale_x_continuous(limits=c(0,100)) + scale_y_continuous(limits=c(0,100)) +
+  xlab(expression(Chlorophyll ~ a ~ Observed ~ (mu*g / L))) +
+  ylab(expression(Chlorophyll ~ a ~ Modeled ~ (mu*g / L))) +
+  #geom_text(x = 175, y = 50, label = paste("y = ", round(mod.lm[[1]][[2]], digits = 2),"x + ", 
+  #                                                  round(mod.lm[[1]][[1]], digits = 2))) +
+  #geom_text(x = 175, y = 45, label = paste("R2","=",round(summary(mod.lm)[8][[1]], digits = 4)))
+  scale_color_distiller(palette="YlGnBu") +
+  theme(legend.position=c(0.9, 0.8))
+
+library(gridExtra)
+grid.arrange(p, p2, p3, ncol = 2)
+
+```
+
+
+\newpage
+
+# Additional information
+## Model Parameters
+```{r}
+parms <- read.csv("./example-data/L227_para_all.csv", header = F)
+colnames(parms) <- c("Parameter","Value","Min","Max","Unit")
+parms <- parms[-c(1:2),]
+
+require(pander)
+row.names(parms) <- NULL
+panderOptions("graph.fontsize", 8)
+pander(parms, include.rownames=FALSE)
+```
+
+\newpage
+
+# Next steps and follow-up questions
+1. Let's change the vmax in the next interation.
+
