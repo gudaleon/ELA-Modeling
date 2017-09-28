@@ -79,8 +79,11 @@ obs <- read.csv("Observed_IntegratedEpi.csv", header = T)
 attach(obs)
 colnames(obs) <- c("org.date","Year","Month","Day", "obs.TP","obs.chla","obs.TDP")
 
+obs_temp <- read.csv("Observed_Temperature.csv")
+attach(obs_temp)
+
 mod <- read.csv("Output_IntegratedEpi.csv", header = F)
-colnames(mod) <- c("Year","Month","Day","ML.date","mod.chla","mod.TDP","mod.TP")
+colnames(mod) <- c("Year","Month","Day","ML.date","mod.chla","mod.TDP","mod.TP", "mod.Temp1m", "mod.Temp4m", "mod.Temp9m")
 
 #Let's tidy! - part 1
 library(tidyr)
@@ -99,11 +102,19 @@ mod <- mod[,-2]
 
 # Convert time object
 obs$date <- as.Date(obs$date, format = "%Y-%m-%d") #Converts data to date structure
+obs_temp$date <- as.Date(obs_temp$date) #, format = "%Y-%m-%d") #Converts data to date structure
 mod$date <- as.Date(mod$date, format = "%Y-%m-%d") #Converts data to date structure
 
 # tidy! - part 2: match model time and observational time
 library(dplyr)
 mod.match <- inner_join(obs,mod, by = "date") 
+mod.match.temp <- inner_join(obs_temp, mod, by = "date")
+obs.totaltempa <- data.frame(cbind(mod.match.temp$obs.Temp1m, mod.match.temp$obs.Temp4m, mod.match.temp$obs.Temp9m))
+obs.totaltemp <- stack(obs.totaltempa)
+mod.totaltempa <- data.frame(cbind(mod.match.temp$mod.Temp1m, mod.match.temp$mod.Temp4m, mod.match.temp$mod.Temp9m))
+mod.totaltemp <- stack(mod.totaltempa)
+totaltemp <- data.frame(cbind(obs.totaltemp[,1], mod.totaltemp[,1]))
+colnames(totaltemp) <- c("TempObs","TempMod")
 
 #write data for later use
 #write.csv(filename = paste0("./example-data/processed/", format(Sys.time(), "%Y%m%d-%H%M"), "_modelcomp-output.csv"))
@@ -149,6 +160,39 @@ p3 <- ggplot(mod.match, aes(x = date)) +
   theme(legend.position = c(0.9,0.9))
 #print(p3)
 
+p4 <- ggplot(mod.match.temp, aes(x = date)) +
+  geom_point(aes(y = obs.Temp1m, col = "Observed"), pch = 19, size = 1) +
+  geom_line(aes(y = mod.Temp1m, col = "Modeled"), size = 0.5) +
+  ylim(0,30) +
+  ylab(expression("Temperature " ( degree*C))) +
+  xlab(" ") +
+  scale_colour_manual("", 
+                      breaks = c("Observed", "Modeled"),
+                      values = c("black", "red")) +
+  theme(legend.position = c(0.9,0.9))
+
+p5 <- ggplot(mod.match.temp, aes(x = date)) +
+  geom_point(aes(y = obs.Temp4m, col = "Observed"), pch = 19, size = 1) +
+  geom_line(aes(y = mod.Temp4m, col = "Modeled"), size = 0.5) +
+  ylim(0,30) +
+  ylab(expression("Temperature " ( degree*C))) +
+  xlab(" ") +
+  scale_colour_manual("", 
+                      breaks = c("Observed", "Modeled"),
+                      values = c("black", "red")) +
+  theme(legend.position = c(0.9,0.9))
+  
+p6 <- ggplot(mod.match.temp, aes(x = date)) +
+  geom_point(aes(y = obs.Temp9m, col = "Observed"), pch = 19, size = 1) +
+  geom_line(aes(y = mod.Temp9m, col = "Modeled"), size = 0.5) +
+  ylim(0,10) +
+  ylab(expression("Temperature " ( degree*C))) +
+  xlab(" ") +
+  scale_colour_manual("", 
+                      breaks = c("Observed", "Modeled"),
+                      values = c("black", "red")) +
+  theme(legend.position = c(0.9,0.9))
+
 require(gridExtra)
 grid.arrange(p, p2, p3, ncol = 1)
 
@@ -161,15 +205,16 @@ grid.arrange(p, p2, p3, ncol = 1)
 ```{r model-reg, fig.cap="Data regression for observed against modeled data. \\label{ModelRegression}", echo = FALSE, fig.height = 5}
 
 mod.lm <- lm(mod.match$mod.TP ~ mod.match$obs.TP)
+summary(mod.lm)
+mse <- mean(residuals(mod.lm)^2)
+rmse <- sqrt(mse)
 p <- ggplot(mod.match, aes(x = obs.TP, y = mod.TP, color=Month)) +
   geom_point(pch = 19, size = 1.5) +
-  geom_abline(slope=1, intercept=0) + #(intercept = mod.lm[[1]][[1]], slope = mod.lm[[1]][[2]]) +
+  geom_abline(slope=1, intercept=0) + 
   scale_x_continuous(limits=c(0,100)) + scale_y_continuous(limits=c(0,100)) +
   xlab(expression(Total ~ Phosphorus ~ Observed ~ (mu*g / L))) +
   ylab(expression(Total ~ Phosphorus ~ Modeled ~ (mu*g / L))) +
-  #geom_text(x = 600, y = 50, label = paste("y = ", round(mod.lm[[1]][[2]], digits = 2),"x + ", 
-  #                                                  round(mod.lm[[1]][[1]], digits = 2))) +
-  #geom_text(x = 600, y = 45, label = paste("R2","=",round(summary(mod.lm)[8][[1]], digits = 4)))
+
   scale_color_distiller(palette="YlGnBu") +
   theme(legend.position=c(0.9, 0.8))
   
@@ -177,43 +222,67 @@ p <- ggplot(mod.match, aes(x = obs.TP, y = mod.TP, color=Month)) +
 
 
 mod.lm <- lm(mod.match$mod.TDP ~ mod.match$obs.TDP)
+summary(mod.lm)
+mse <- mean(residuals(mod.lm)^2)
+rmse <- sqrt(mse)
 p2 <- ggplot(mod.match, aes(x = obs.TDP, y = mod.TDP, color=Month)) +
   geom_point(pch = 19, size = 1.5) +
-  geom_abline(slope=1, intercept=0) + #(intercept = mod.lm[[1]][[1]], slope = mod.lm[[1]][[2]]) +
+  geom_abline(slope=1, intercept=0) + 
    scale_x_continuous(limits=c(0,50)) + scale_y_continuous(limits=c(0,50)) +
   xlab(expression(TDP ~ Observed ~ (mu*g / L))) +
   ylab(expression(TDP ~ Modeled ~ (mu*g / L))) +
-  #geom_text(x = 425, y = 50, label = paste("y = ", round(mod.lm[[1]][[2]], digits = 2),"x + ", 
-  #                                                  round(mod.lm[[1]][[1]], digits = 2))) +
-  #geom_text(x = 450, y = 45, label = paste("R2","=",round(summary(mod.lm)[8][[1]], digits = 4)))
   scale_color_distiller(palette="YlGnBu") +
   theme(legend.position=c(0.9, 0.8))
 #print(p2)
 
 mod.lm <- lm(mod.match$mod.chla ~ mod.match$obs.chla)
+summary(mod.lm)
+mse <- mean(residuals(mod.lm)^2)
+rmse <- sqrt(mse)
 p3 <- ggplot(mod.match, aes(x = obs.chla, y = mod.chla, color=Month)) +
   geom_point(pch = 19, size = 1.5) +
   geom_abline(slope=1, intercept=0) + #(intercept = mod.lm[[1]][[1]], slope = mod.lm[[1]][[2]]) +
   scale_x_continuous(limits=c(0,100)) + scale_y_continuous(limits=c(0,100)) +
   xlab(expression(Chlorophyll ~ a ~ Observed ~ (mu*g / L))) +
   ylab(expression(Chlorophyll ~ a ~ Modeled ~ (mu*g / L))) +
-  #geom_text(x = 175, y = 50, label = paste("y = ", round(mod.lm[[1]][[2]], digits = 2),"x + ", 
-  #                                                  round(mod.lm[[1]][[1]], digits = 2))) +
-  #geom_text(x = 175, y = 45, label = paste("R2","=",round(summary(mod.lm)[8][[1]], digits = 4)))
   scale_color_distiller(palette="YlGnBu") +
   theme(legend.position=c(0.9, 0.8))
 #print(p3)
 
 mod.lm <- lm(mod.match$mod.chla ~ mod.match$obs.chla)
+summary(mod.lm)
+mse <- mean(residuals(mod.lm)^2)
+rmse <- sqrt(mse)
 p4 <- ggplot(mod.match, aes(x = obs.chla, y = mod.chla, color=Year)) +
   geom_point(pch = 19, size = 1.5) +
-  geom_abline(slope=1, intercept=0) + #(intercept = mod.lm[[1]][[1]], slope = mod.lm[[1]][[2]]) +
+  geom_abline(slope=1, intercept=0) + 
   scale_x_continuous(limits=c(0,100)) + scale_y_continuous(limits=c(0,100)) +
   xlab(expression(Chlorophyll ~ a ~ Observed ~ (mu*g / L))) +
   ylab(expression(Chlorophyll ~ a ~ Modeled ~ (mu*g / L))) +
-  #geom_text(x = 175, y = 50, label = paste("y = ", round(mod.lm[[1]][[2]], digits = 2),"x + ", 
-  #                                                  round(mod.lm[[1]][[1]], digits = 2))) +
-  #geom_text(x = 175, y = 45, label = paste("R2","=",round(summary(mod.lm)[8][[1]], digits = 4)))
+
+  scale_color_distiller(palette="YlGnBu") +
+  theme(legend.position=c(0.9, 0.8))
+
+p5 <- ggplot(mod.match, aes(x = obs.TP, y = mod.TP, color=Year)) +
+  geom_point(pch = 19, size = 1.5) +
+  geom_abline(slope=1, intercept=0) + 
+  scale_x_continuous(limits=c(0,100)) + scale_y_continuous(limits=c(0,100)) +
+  xlab(expression(TP ~ Observed ~ (mu*g / L))) +
+  ylab(expression(TP ~ Modeled ~ (mu*g / L))) +
+  scale_color_distiller(palette="YlGnBu") +
+  theme(legend.position=c(0.9, 0.8))
+
+tempregression <- lm(totaltemp$TempObs ~ totaltemp$TempMod)
+summary(tempregression)
+mse <- mean(residuals(tempregression)^2)
+rmse <- sqrt(mse)
+rmse
+p6 <- ggplot(totaltemp, aes(x = TempObs, y = TempMod)) +
+  geom_point(pch = 19, size = 1.5) +
+  geom_abline(slope=1, intercept=0) + 
+  scale_x_continuous(limits=c(0,30)) + scale_y_continuous(limits=c(0,30)) +
+  xlab(expression("Temperature Observed " ( degree*C))) +
+  ylab(expression("Temperature Modeled " ( degree*C))) +
   scale_color_distiller(palette="YlGnBu") +
   theme(legend.position=c(0.9, 0.8))
 
