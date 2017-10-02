@@ -15,22 +15,22 @@ lake_par_file = tempname;
 dlmwrite(sed_par_file, calibration_k_values,'delimiter','\t');
 
 %% writing lake parameter file
-f = fopen('/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_para_all.xls');
-garbage = fgetl(f); % file get line
-garbage = fgetl(f); % file get line
-data_lake = textscan(f, '%s%f%f%f%s', length(K_lake), 'Delimiter', '\t');
-fclose(f); % the parameter line (xx,1) + 2 lines gives the location of the paramter in the input txt file.
-% array position + 2 = input file line
-
-for i=1:length(K_lake)
-    data_lake{1, 2}(i,1) = K_lake{i}; % I_scDOC
-end
-
-
-fid=fopen(lake_par_file,'wt');
-fprintf(fid,'\n\n');
-dlmwrite(lake_par_file, [[1:length(K_lake)]',data_lake{2},data_lake{3},data_lake{4},(1:length(K_lake))'],'delimiter','\t','-append'); % 1:length(K_lake) is the length of the parameter file.
-fclose(fid);
+% f = fopen('/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_para_all_v2.xls');
+% garbage = fgetl(f); % file get line
+% garbage = fgetl(f); % file get line
+% data_lake = textscan(f, '%s%f%f%f%s', length(K_lake), 'Delimiter', '\t');
+% fclose(f); % the parameter line (xx,1) + 2 lines gives the location of the paramter in the input txt file.
+% % array position + 2 = input file line
+% 
+% for i=1:length(K_lake)
+%     data_lake{1, 2}(i,1) = K_lake{i}; % I_scDOC
+% end
+% 
+% 
+% fid=fopen(lake_par_file,'wt');
+% fprintf(fid,'\n\n');
+% dlmwrite(lake_par_file, [[1:length(K_lake)]',data_lake{2},data_lake{3},data_lake{4},(1:length(K_lake))'],'delimiter','\t','-append'); % 1:length(K_lake) is the length of the parameter file.
+% fclose(fid);
 
 %% Specific MyLake application
 
@@ -55,7 +55,7 @@ end
 
 %# ############ This is Lake 227 ##############
 
-Parafile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_para_all.xls';
+Parafile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_para_all_v2.xls';
 Initfile='/Users/krsalkgu/Documents/MATLAB/KRS_ELA_Model/L227_application/L227_init_basin1.xls';
 
 
